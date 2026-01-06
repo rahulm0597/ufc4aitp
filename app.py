@@ -7,6 +7,7 @@ import pandas as pd
 # --- Configuration & Setup ---
 st.set_page_config(page_title="Universal File-to-Text Converter", page_icon="📄")
 
+# Initialize MarkItDown
 md = MarkItDown()
 
 def save_uploaded_file(uploaded_file):
@@ -91,4 +92,41 @@ if uploaded_files:
                     with tab2:
                         # Calculate Sizes
                         original_size = uploaded_file.size
-                        converted_size = len(converted_text.encode('utf
+                        
+                        # FIXED LINE BELOW
+                        converted_size = len(converted_text.encode('utf-8'))
+                        
+                        # Calculate Percentage Reduction
+                        if original_size > 0:
+                            reduction = ((original_size - converted_size) / original_size) * 100
+                        else:
+                            reduction = 0
+                            
+                        # Display Comparison Table
+                        data = {
+                            "Metric": ["Original File Size", "Converted Text Size"],
+                            "Size": [format_size(original_size), format_size(converted_size)]
+                        }
+                        df = pd.DataFrame(data)
+                        
+                        st.table(df)
+                        
+                        # Display Percentage Badge
+                        if reduction > 0:
+                            st.success(f"🚀 Text version is **{reduction:.1f}% smaller** than the original!")
+                        elif reduction < 0:
+                            st.info(f"ℹ️ Text version is larger (common for very small compressed files).")
+                        else:
+                            st.info("File sizes are identical.")
+
+                # Cleanup
+                try:
+                    os.remove(temp_path)
+                except:
+                    pass
+            
+            st.divider()
+
+# Sidebar
+with st.sidebar:
+    st.info("Supported Formats: .docx, .xlsx, .pptx, .pdf, .html, .zip")
